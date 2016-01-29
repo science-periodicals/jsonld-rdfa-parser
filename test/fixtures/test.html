@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+  </head>
+  <body prefix="sa: http://ns.science.ai# schema: http://schema.org/">
+    <!-- The author and contributor list -->
+    <article resource="http://example.com" typeof="schema:ScholarlyArticle">
+      <ol>
+        <!-- The first author, Robin Berjon -->
+        <li property="schema:author" typeof="sa:ContributorRole">
+          <a property="schema:author" href="http://berjon.com/" typeof="schema:Person">
+            <span property="schema:givenName">Robin</span>
+            <span property="schema:familyName">Berjon</span>
+          </a>
+          <a href="#scienceai" property="sa:roleAffiliation" resource="https://science.ai/">a</a>
+          <sup property="sa:roleContactPoint" typeof="schema:ContactPoint">
+            <a property="schema:email" href="mailto:robin@berjon.com" title="corresponding author">✉</a>
+          </sup>
+        </li>
+        <!-- A contributor, Sebastien Ballesteros -->
+        <li property="schema:contributor" typeof="sa:ContributorRole">
+          <a property="schema:contributor" href="https://github.com/sballesteros" typeof="schema:Person">
+            <span property="schema:givenName">Sebastien</span>
+            <span property="schema:familyName">Ballesteros</span>
+          </a>
+          <a href="#scienceai" property="sa:roleAffiliation" resource="https://science.ai/">a</a>
+        </li>
+      </ol>
+      <!-- The affiliation list -->
+      <ol>
+        <li id="scienceai">
+          <a href="https://science.ai/" typeof="schema:Corporation">
+            <span property="schema:name">science.ai</span>
+          </a>
+        </li>
+      </ol>
+    </article>
+  </body>
+</html>
