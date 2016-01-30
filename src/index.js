@@ -2,6 +2,9 @@ import greenTurtleScript from 'green-turtle';
 import jsdom from 'jsdom';
 import { XMLSerializer } from 'xmldom';
 import isUrl from 'is-url';
+import fs  from 'fs';
+
+const greenTurtleSrc = fs.readFileSync(greenTurtleScript, {encoding: 'utf8'});
 
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const RDF_XML_LITERAL = RDF + 'XMLLiteral';
@@ -13,39 +16,46 @@ const XSD_STRING = 'http://www.w3.org/2001/XMLSchema#string';
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 
+const BASE_URI = 'file:///i-will-go-away-when-green-turtle-is-refactored';
+
 /**
  * @param data - a filePath, HTML string or URL
  */
 export default function jsonldRdfaParser(data, callback) {
 
   let config = {
-    scripts: [greenTurtleScript]
+    virtualConsole: jsdom.createVirtualConsole().sendTo(console)
   };
 
-  if (typeof data !== 'string') {
-    return callback(new Error('data must be a file path, HTML string or URL'));
-  }
-
-  if (isUrl(data)) {
-    config.url = data;
-  } else if (/<[a-z][\s\S]*>/i.test(data)) {
-    config.url = 'file:///'; // without that, green turtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
-    config.html = data;
+  if (typeof data === 'string') {
+    if (isUrl(data)) {
+      config.url = data;
+      config.src = greenTurtleSrc; //config.scripts will cause GreenTurtle to fail :(
+    } else if (/<[a-z][\s\S]*>/i.test(data)) {
+      config.url = BASE_URI; // without that, GreenTurtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
+      config.html = data;
+      config.scripts = [greenTurtleScript];
+    } else {
+      config.file = data;
+      config.scripts = [greenTurtleScript];
+    }
+  } else if (typeof data === 'object' && data.outerHTML) {
+    config.url = BASE_URI; // without that, GreenTurtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
+    config.html = data.outerHTML; // this is stupid but whithout it we hit https://github.com/alexmilowski/green-turtle/issues/6
+    config.scripts = [greenTurtleScript];
   } else {
-    config.file = data;
+    return callback(new Error('data must be a file path, HTML string, URL or a DOM element'));
   }
 
   config.done = function(err, window) {
     if (err) return callback(err);
-
     let dataset, processingError;
     try {
       window.GreenTurtle.attach(window.document);
-      dataset = processGraph(window.document.data.graph)
+      dataset = processGraph(window.document.data.graph);
     } catch (e) {
       processingError = e;
     }
-
     callback(processingError, dataset);
   };
 
@@ -57,7 +67,6 @@ export default function jsonldRdfaParser(data, callback) {
  * This function is mostly taken from the jsonld.js lib but updated to
  * the lattest green-turtle API
  */
-
 function processGraph(data) {
 
   var dataset = {};
