@@ -24,6 +24,7 @@
   "homepage": "https://github.com/scienceai/jsonld-rdfa-parser#readme",
   "dependencies": {
     "green-turtle": "0.0.0",
+    "is-url": "^1.2.1",
     "jsdom": "^8.0.1",
     "xmldom": "^0.1.21"
   },
