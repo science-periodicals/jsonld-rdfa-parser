@@ -24,25 +24,22 @@ const BASE_URI = 'file:///i-will-go-away-when-green-turtle-is-refactored';
 export default function jsonldRdfaParser(data, callback) {
 
   let config = {
-    virtualConsole: jsdom.createVirtualConsole().sendTo(console)
+    virtualConsole: jsdom.createVirtualConsole().sendTo(console),
+    src: greenTurtleSrc //!! config.scripts will cause GreenTurtle to fail
   };
 
   if (typeof data === 'string') {
     if (isUrl(data)) {
       config.url = data;
-      config.src = greenTurtleSrc; //config.scripts will cause GreenTurtle to fail :(
     } else if (/<[a-z][\s\S]*>/i.test(data)) {
       config.url = BASE_URI; // without that, GreenTurtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
       config.html = data;
-      config.scripts = [greenTurtleScript];
     } else {
       config.file = data;
-      config.scripts = [greenTurtleScript];
     }
   } else if (typeof data === 'object' && data.outerHTML) {
     config.url = BASE_URI; // without that, GreenTurtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
     config.html = data.outerHTML; // this is stupid but whithout it we hit https://github.com/alexmilowski/green-turtle/issues/6
-    config.scripts = [greenTurtleScript];
   } else {
     return callback(new Error('data must be a file path, HTML string, URL or a DOM element'));
   }
