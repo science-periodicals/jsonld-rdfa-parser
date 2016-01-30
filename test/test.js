@@ -79,7 +79,7 @@ describe('jsonld-rdfa-parser', function() {
   var server;
 
   before(function(done) {
-    jsonld.registerRDFParser('html', jsonldRdfaParser);
+    jsonld.registerRDFParser('text/html', jsonldRdfaParser);
     server = http.createServer(function(req, res) {
       fs.readFile(htmlPath, function(error, data) {
         res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -90,7 +90,7 @@ describe('jsonld-rdfa-parser', function() {
   });
 
   it('should parse RDFa from a file path ', function(done) {
-    jsonld.fromRDF(htmlPath, {format: 'html'}, function(err, data) {
+    jsonld.fromRDF(htmlPath, {format: 'text/html'}, function(err, data) {
       jsonld.frame(data, frame, function(err, data) {
         assert.deepEqual(data['@graph'][0], expected);
         done();
@@ -100,7 +100,7 @@ describe('jsonld-rdfa-parser', function() {
 
   it('should parse RDFa from a string of HTML ', function(done) {
     fs.readFile(htmlPath, {encoding: 'utf8'}, function(err, html) {
-      jsonld.fromRDF(html, {format: 'html'}, function(err, data) {
+      jsonld.fromRDF(html, {format: 'text/html'}, function(err, data) {
         jsonld.frame(data, frame, function(err, data) {
           assert.deepEqual(data['@graph'][0], expected);
           done();
@@ -112,7 +112,7 @@ describe('jsonld-rdfa-parser', function() {
   it('should parse RDFa from a DOM node', function(done) {
     fs.readFile(htmlPath, {encoding: 'utf8'}, function(err, html) {
       let { body } = jsdom(html).defaultView.window.document;
-      jsonld.fromRDF(body, {format: 'html'}, function(err, data) {
+      jsonld.fromRDF(body, {format: 'text/html'}, function(err, data) {
         if (err) throw err;
         jsonld.frame(data, frame, function(err, data) {
           assert.deepEqual(data['@graph'][0], expected);
@@ -123,7 +123,7 @@ describe('jsonld-rdfa-parser', function() {
   });
 
   it('should parse RDFa from a URL', function(done) {
-    jsonld.fromRDF('http://127.0.0.1:3000', {format: 'html'}, function(err, data) {
+    jsonld.fromRDF('http://127.0.0.1:3000', {format: 'text/html'}, function(err, data) {
       if (err) throw err;
       jsonld.frame(data, frame, function(err, data) {
         assert.deepEqual(data['@graph'][0], expected);
@@ -133,6 +133,7 @@ describe('jsonld-rdfa-parser', function() {
   });
 
   after(function() {
+    jsonld.unregisterRDFParser('text/html');
     server.close();
   });
 

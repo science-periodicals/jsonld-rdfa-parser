@@ -14,16 +14,16 @@ file path, a URL, a HTML string or a DOM element.
 import jsonldRdfaParser from jsonld-rdfa-parser;
 import jsonld from 'jsonld';
 
-// register the parser under the string `format`
-jsonld.registerRDFParser(format, jsonldRdfaParser);
+// register the parser for content type text/html
+jsonld.registerRDFParser('text/html', jsonldRdfaParser);
 
-// specify the format
-jsonld.fromRDF('test.html', {format: format}, function(err, data) {
+// use it
+jsonld.fromRDF('test.html', {format: 'text/html'}, function(err, data) {
 
 });
 ```
 
-See test for more examples.
+See tests for more examples.
 
 Note the interesting code of this library is mostly taken from the
 [jsonld.js](https://github.com/digitalbazaar/jsonld.js) library but
