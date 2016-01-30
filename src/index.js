@@ -1,10 +1,7 @@
-import greenTurtleScript from 'green-turtle';
+import getRDFaGraph from 'graph-rdfa-processor';
 import jsdom from 'jsdom';
 import { XMLSerializer } from 'xmldom';
 import isUrl from 'is-url';
-import fs  from 'fs';
-
-const greenTurtleSrc = fs.readFileSync(greenTurtleScript, {encoding: 'utf8'});
 
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const RDF_XML_LITERAL = RDF + 'XMLLiteral';
@@ -16,48 +13,51 @@ const XSD_STRING = 'http://www.w3.org/2001/XMLSchema#string';
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 
-const BASE_URI = 'file:///i-will-go-away-when-green-turtle-is-refactored';
-
 /**
  * @param data - a filePath, HTML string or URL
  */
 export default function jsonldRdfaParser(data, callback) {
 
-  let config = {
-    virtualConsole: jsdom.createVirtualConsole().sendTo(console),
-    src: greenTurtleSrc //!! config.scripts will cause GreenTurtle to fail
-  };
-
-  if (typeof data === 'string') {
+  if (typeof data === 'object' && 'nodeType' in data) {
+    process(data);
+  } else if (typeof data === 'string') {
+    let config = {
+      done: function(err, window) {
+        if (err) return callback(err);
+        process(window.document);
+      }
+    };
     if (isUrl(data)) {
       config.url = data;
     } else if (/<[a-z][\s\S]*>/i.test(data)) {
-      config.url = BASE_URI; // without that, GreenTurtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
       config.html = data;
     } else {
       config.file = data;
     }
-  } else if (typeof data === 'object' && data.outerHTML) {
-    config.url = BASE_URI; // without that, GreenTurtle will throw: `Cannot resolve uri against non-generic URI: about:blank`
-    config.html = data.outerHTML; // this is stupid but whithout it we hit https://github.com/alexmilowski/green-turtle/issues/6
+    jsdom.env(config);
   } else {
     return callback(new Error('data must be a file path, HTML string, URL or a DOM element'));
   }
 
-  config.done = function(err, window) {
-    if (err) return callback(err);
+  function process(node) {
+    let opts;
+    if (!node.baseURI || node.baseURI === 'about:blank') {
+      opts = { baseURI: 'http://localhost/' };
+    }
+
     let dataset, processingError;
     try {
-      window.GreenTurtle.attach(window.document);
-      dataset = processGraph(window.document.data.graph);
+      let graph = getRDFaGraph(node, opts);
+      dataset = processGraph(graph);
     } catch (e) {
       processingError = e;
     }
     callback(processingError, dataset);
-  };
+  }
 
-  jsdom.env(config);
 };
+
+
 
 
 /**

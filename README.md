@@ -1,8 +1,8 @@
 # jsonld-rdfa-parser
 
 A custom RDFa parser (based on
-[green-turtle](https://github.com/alexmilowski/green-turtle)) to be
-registered with jsonld.js registerRDFParser method.
+[graph-rdfa-processor](https://github.com/scienceai/graph-rdfa-processor)) to be
+registered with jsonld.js `registerRDFParser` method.
 
 The custom RDFa parser must be register with
 [jsonld.js](https://github.com/digitalbazaar/jsonld.js). Once
@@ -27,6 +27,5 @@ See tests for more examples.
 
 Note the interesting code of this library is mostly taken from the
 [jsonld.js](https://github.com/digitalbazaar/jsonld.js) library but
-updated to the latest
-[green-turtle](https://github.com/alexmilowski/green-turtle))
-API. Credits are due to the original authors.
+updated to the latest graph-rdfa-processor API. Credits are due to the
+original authors.
