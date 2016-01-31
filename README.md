@@ -10,7 +10,7 @@ registered, `jsonld.fromRDF` can be used and take for input either a
 file path, a URL, a HTML string or a DOM element.
 
 
-```
+```js
 import jsonldRdfaParser from jsonld-rdfa-parser;
 import jsonld from 'jsonld';
 
