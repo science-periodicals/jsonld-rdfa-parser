@@ -11,7 +11,7 @@ file path, a URL, a HTML string or a DOM element.
 
 
 ```js
-import jsonldRdfaParser from jsonld-rdfa-parser;
+import jsonldRdfaParser from 'jsonld-rdfa-parser';
 import jsonld from 'jsonld';
 
 // register the parser for content type text/html
