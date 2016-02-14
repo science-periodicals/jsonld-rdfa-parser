@@ -1,6 +1,6 @@
 import getRDFaGraph from 'graph-rdfa-processor';
-import jsdom from 'jsdom';
-import { XMLSerializer } from 'xmldom';
+import jsdom from 'jsdom'; // see ./browser/jsdom.js for browser version
+import { XMLSerializer } from 'xmldom'; // see ./browser/xmldom.js for browser version
 import isUrl from 'is-url';
 
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';

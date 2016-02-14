@@ -4,10 +4,14 @@ A custom RDFa parser (based on
 [graph-rdfa-processor](https://github.com/scienceai/graph-rdfa-processor)) to be
 registered with jsonld.js `registerRDFParser` method.
 
+Works in Node.js and the browser.
+
 The custom RDFa parser must be register with
 [jsonld.js](https://github.com/digitalbazaar/jsonld.js). Once
 registered, `jsonld.fromRDF` can be used and take for input either a
-file path, a URL, a HTML string or a DOM element.
+DOM element (in the browser or in Node.js
+[e.g., provided by [JSDOM](https://github.com/tmpvar/jsdom)] ) or a
+file path, a URL or a HTML string (Node.js only).
 
 
 ```js

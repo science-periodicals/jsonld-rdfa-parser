@@ -1,6 +1,6 @@
 {
   "name": "jsonld-rdfa-parser",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A custom RDFa parser to be registered with jsonld.js registerRDFParser method",
   "main": "dist/index.js",
   "scripts": {
@@ -34,5 +34,9 @@
     "babel-register": "^6.4.3",
     "jsonld": "^0.4.5",
     "mocha": "^2.3.4"
+  },
+  "browser": {
+    "xmldom": "./dist/browser/xmldom.js",
+    "jsdom": "./dist/browser/jsdom.js"
   }
 }
