@@ -4,7 +4,7 @@
   "description": "A custom RDFa parser to be registered with jsonld.js registerRDFParser method",
   "main": "dist/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --compilers js:babel-register",
+    "test": "mocha --compilers js:babel-register",
     "prepublish": "rm -rf dist && ./node_modules/.bin/babel src --out-dir dist"
   },
   "repository": {
@@ -22,19 +22,19 @@
   },
   "homepage": "https://github.com/scienceai/jsonld-rdfa-parser#readme",
   "dependencies": {
-    "graph-rdfa-processor": "^1.1.0",
-    "is-url": "^1.2.1",
-    "jsdom": "^8.0.1",
-    "xmldom": "^0.1.21"
+    "graph-rdfa-processor": "1.1.0",
+    "is-url": "1.2.1",
+    "jsdom": "9.1.0",
+    "xmldom": "0.1.22"
   },
   "devDependencies": {
-    "babel-cli": "^6.4.5",
-    "babel-plugin-add-module-exports": "^0.1.2",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-register": "^6.4.3",
+    "babel-cli": "6.8.0",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "babel-preset-es2015": "6.6.0",
+    "babel-register": "6.8.0",
     "eslint-config-scienceai": "1.1.2",
-    "jsonld": "^0.4.5",
-    "mocha": "^2.3.4"
+    "jsonld": "0.4.11",
+    "mocha": "2.4.5"
   },
   "browser": {
     "xmldom": "./dist/browser/xmldom.js",

@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8"/>
   </head>
-  <body prefix="sa: http://ns.science.ai# schema: http://schema.org/">
+  <body prefix="sa: http://ns.science.ai# schema: http://schema.org/ rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!-- The author and contributor list -->
     <article resource="http://example.com" typeof="schema:ScholarlyArticle">
+      <h1 property="schema:name" datatype="rdf:HTML">De la <em>bombe</em> bébé!</h1>
       <ol>
         <!-- The first author, Robin Berjon -->
         <li property="schema:author" typeof="sa:ContributorRole">
