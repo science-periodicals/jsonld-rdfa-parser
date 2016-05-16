@@ -1,6 +1,6 @@
 {
   "name": "jsonld-rdfa-parser",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A custom RDFa parser to be registered with jsonld.js registerRDFParser method",
   "main": "dist/index.js",
   "scripts": {
