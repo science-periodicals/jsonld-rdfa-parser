@@ -1,10 +1,9 @@
-
 import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
 import jsonld from 'jsonld';
 import jsonldRdfaParser from '../src';
-import jsdom from 'jsdom';
+import { JSDOM } from 'jsdom';
 import http from 'http';
 
 const htmlPath = path.join(path.dirname(__filename), 'fixtures', 'test.html');
@@ -14,7 +13,7 @@ const expected = {
   '@type': 'ScholarlyArticle',
   name: {
     '@type': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML',
-    '@value': 'De la <em>bombe</em> bébé!',
+    '@value': 'De la <em>bombe</em> bébé!'
   },
   author: {
     '@id': '_:b0',
@@ -22,36 +21,35 @@ const expected = {
     roleAffiliation: {
       '@id': 'https://science.ai/',
       '@type': 'Corporation',
-      name: 'science.ai',
+      name: 'science.ai'
     },
     roleContactPoint: {
       '@id': '_:b1',
       '@type': 'ContactPoint',
-      email: { '@id': 'mailto:robin@berjon.com' },
+      email: { '@id': 'mailto:robin@berjon.com' }
     },
-    author:
-    {
+    author: {
       '@id': 'http://berjon.com/',
       '@type': 'Person',
       familyName: 'Berjon',
-      givenName: 'Robin',
-    },
+      givenName: 'Robin'
+    }
   },
   contributor: {
     '@id': '_:b2',
     '@type': 'sa:ContributorRole',
-    roleAffiliation:  {
+    roleAffiliation: {
       '@id': 'https://science.ai/',
       '@type': 'Corporation',
-      name: 'science.ai',
+      name: 'science.ai'
     },
     contributor: {
       '@id': 'https://github.com/sballesteros',
       '@type': 'Person',
       familyName: 'Ballesteros',
-      givenName: 'Sebastien',
-    },
-  },
+      givenName: 'Sebastien'
+    }
+  }
 };
 
 const frame = {
@@ -60,28 +58,27 @@ const frame = {
     sa: 'http://ns.science.ai#',
     roleAffiliation: {
       '@id': 'sa:roleAffiliation',
-      '@type': '@id',
+      '@type': '@id'
     },
     roleContactPoint: {
       '@id': 'sa:roleContactPoint',
-      '@type': '@id',
+      '@type': '@id'
     },
     author: {
-      '@type': '@id',
+      '@type': '@id'
     },
     contributor: {
-      '@type': '@id',
-    },
+      '@type': '@id'
+    }
   },
   '@embed': '@always',
-  '@type': 'ScholarlyArticle',
+  '@type': 'ScholarlyArticle'
 };
-
 
 describe('jsonld-rdfa-parser', () => {
   let server;
 
-  before((done) => {
+  before(done => {
     jsonld.registerRDFParser('text/html', jsonldRdfaParser);
     server = http.createServer((req, res) => {
       fs.readFile(htmlPath, (error, data) => {
@@ -92,8 +89,9 @@ describe('jsonld-rdfa-parser', () => {
     server.listen(3000, '127.0.0.1', done);
   });
 
-  it('should parse RDFa from a file path ', (done) => {
+  it('should parse RDFa from a file path ', done => {
     jsonld.fromRDF(htmlPath, { format: 'text/html' }, (err, data) => {
+      if (err) return done(err);
       jsonld.frame(data, frame, (err, framed) => {
         assert.deepEqual(framed['@graph'][0], expected);
         done();
@@ -101,9 +99,10 @@ describe('jsonld-rdfa-parser', () => {
     });
   });
 
-  it('should parse RDFa from a string of HTML ', (done) => {
+  it('should parse RDFa from a string of HTML ', done => {
     fs.readFile(htmlPath, { encoding: 'utf8' }, (err, html) => {
       jsonld.fromRDF(html, { format: 'text/html' }, (err, data) => {
+        if (err) return done(err);
         jsonld.frame(data, frame, (err, framed) => {
           assert.deepEqual(framed['@graph'][0], expected);
           done();
@@ -112,11 +111,11 @@ describe('jsonld-rdfa-parser', () => {
     });
   });
 
-  it('should parse RDFa from a DOM node', (done) => {
+  it('should parse RDFa from a DOM node', done => {
     fs.readFile(htmlPath, { encoding: 'utf8' }, (err, html) => {
-      let { body } = jsdom.jsdom(html).defaultView.window.document;
+      let { body } = new JSDOM(html).window.document;
       jsonld.fromRDF(body, { format: 'text/html' }, (err, data) => {
-        if (err) throw err;
+        if (err) return done(err);
         jsonld.frame(data, frame, (err, framed) => {
           assert.deepEqual(framed['@graph'][0], expected);
           done();
@@ -125,14 +124,18 @@ describe('jsonld-rdfa-parser', () => {
     });
   });
 
-  it('should parse RDFa from a URL', (done) => {
-    jsonld.fromRDF('http://127.0.0.1:3000', { format: 'text/html' }, (err, data) => {
-      if (err) throw err;
-      jsonld.frame(data, frame, (err, framed) => {
-        assert.deepEqual(framed['@graph'][0], expected);
-        done();
-      });
-    });
+  it('should parse RDFa from a URL', done => {
+    jsonld.fromRDF(
+      'http://127.0.0.1:3000',
+      { format: 'text/html' },
+      (err, data) => {
+        if (err) return done(err);
+        jsonld.frame(data, frame, (err, framed) => {
+          assert.deepEqual(framed['@graph'][0], expected);
+          done();
+        });
+      }
+    );
   });
 
   after(() => {

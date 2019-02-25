@@ -1,6 +1,5 @@
-
 import getRDFaGraph from 'graph-rdfa-processor';
-import jsdom from 'jsdom'; // see ./browser/jsdom.js for browser version
+import { JSDOM } from 'jsdom'; // see ./browser/jsdom.js for browser version
 import { XMLSerializer } from 'xmldom'; // see ./browser/xmldom.js for browser version
 import isUrl from 'is-url';
 
@@ -15,35 +14,15 @@ const XSD_STRING = 'http://www.w3.org/2001/XMLSchema#string';
 /**
  * @param data - a filePath, HTML string or URL
  */
-export default function jsonldRdfaParser (data, callback) {
-  if (typeof data === 'object' && 'nodeType' in data) {
-    process(data);
-  }
-  else if (typeof data === 'string') {
-    let config = {
-      done: (err, window) => {
-        if (err) return callback(err);
-        process(window.document);
-      },
-    };
-    if (isUrl(data)) config.url = data;
-    else if (/<[a-z][\s\S]*>/i.test(data)) config.html = data;
-    else config.file = data;
-    jsdom.env(config);
-  }
-  else {
-    return callback(new Error('data must be a file path, HTML string, URL or a DOM element'));
-  }
 
+export default function jsonldRdfaParser(data, callback) {
   function process(node) {
     let opts;
     if (!node.baseURI || node.baseURI === 'about:blank') {
       opts = { baseURI: 'http://localhost/' };
     }
 
-    let dataset
-      , processingError
-    ;
+    let dataset, processingError;
     try {
       let graph = getRDFaGraph(node, opts);
       dataset = processGraph(graph);
@@ -52,24 +31,48 @@ export default function jsonldRdfaParser (data, callback) {
     }
     callback(processingError, dataset);
   }
+
+  if (typeof data === 'object' && 'nodeType' in data) {
+    process(data);
+  } else if (typeof data === 'string') {
+    if (isUrl(data)) {
+      JSDOM.fromURL(data)
+        .then(dom => {
+          process(dom.window.document);
+        })
+        .catch(callback);
+    } else if (/<[a-z][\s\S]*>/i.test(data)) {
+      process(new JSDOM(data).window.document);
+    } else {
+      JSDOM.fromFile(data)
+        .then(dom => {
+          process(dom.window.document);
+        })
+        .catch(callback);
+    }
+  } else {
+    return callback(
+      new Error('data must be a file path, HTML string, URL or a DOM element')
+    );
+  }
 }
 
 /**
  * This function is mostly taken from the jsonld.js lib but updated to
  * the latest green-turtle API, and for support for HTML
  */
-function processGraph (data) {
+function processGraph(data) {
   let dataset = {
-    '@default': [],
+    '@default': []
   };
 
-  let subjects = data.subjects
-    , htmlMapper = (n) => {
-        let div = n.ownerDocument.createElement('div');
-        div.appendChild(n.cloneNode(true));
-        return div.innerHTML;
-      }
-  ;
+  let subjects = data.subjects,
+    htmlMapper = n => {
+      let div = n.ownerDocument.createElement('div');
+      div.appendChild(n.cloneNode(true));
+      return div.innerHTML;
+    };
+
   Object.keys(subjects).forEach(subject => {
     let predicates = subjects[subject].predicates;
     Object.keys(predicates).forEach(predicate => {
@@ -83,12 +86,12 @@ function processGraph (data) {
 
         // add subject & predicate
         triple.subject = {
-          type:   subject.indexOf('_:') === 0 ? 'blank node' : 'IRI',
-          value:  subject,
+          type: subject.indexOf('_:') === 0 ? 'blank node' : 'IRI',
+          value: subject
         };
         triple.predicate = {
-          type:   predicate.indexOf('_:') === 0 ? 'blank node' : 'IRI',
-          value:  predicate,
+          type: predicate.indexOf('_:') === 0 ? 'blank node' : 'IRI',
+          value: predicate
         };
         triple.object = {};
 
@@ -102,32 +105,34 @@ function processGraph (data) {
         if (object.type === RDF_XML_LITERAL) {
           // initialize XMLSerializer
           let serializer = new XMLSerializer();
-          value = Array.from(object.value).map(n => serializer.serializeToString(n)).join('');
+          value = Array.from(object.value)
+            .map(n => serializer.serializeToString(n))
+            .join('');
           triple.object.datatype = RDF_XML_LITERAL;
         }
         // serialise HTML literal
         else if (object.type === RDF_HTML_LITERAL) {
-          value = Array.from(object.value).map(htmlMapper).join('');
+          value = Array.from(object.value)
+            .map(htmlMapper)
+            .join('');
           triple.object.datatype = RDF_HTML_LITERAL;
         }
         // object is an IRI
         else if (object.type === RDF_OBJECT) {
-          if (object.value.indexOf('_:') === 0) triple.object.type = 'blank node';
+          if (object.value.indexOf('_:') === 0)
+            triple.object.type = 'blank node';
           else triple.object.type = 'IRI';
-        }
-        else {
+        } else {
           // object is a literal
           triple.object.type = 'literal';
           if (object.type === RDF_PLAIN_LITERAL) {
             if (object.language) {
               triple.object.datatype = RDF_LANGSTRING;
               triple.object.language = object.language;
-            }
-            else {
+            } else {
               triple.object.datatype = XSD_STRING;
             }
-          }
-          else {
+          } else {
             triple.object.datatype = object.type;
           }
         }
