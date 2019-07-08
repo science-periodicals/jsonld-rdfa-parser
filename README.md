@@ -1,7 +1,7 @@
 # jsonld-rdfa-parser
 
 A custom RDFa parser (based on
-[graph-rdfa-processor](https://github.com/scienceai/graph-rdfa-processor)) to be
+[graph-rdfa-processor](https://github.com/science-periodicals/graph-rdfa-processor)) to be
 registered with jsonld.js `registerRDFParser` method.
 
 Works in Node.js and the browser.

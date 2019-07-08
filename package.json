@@ -9,9 +9,15 @@
     "prepublish": "rm -rf dist && babel src --out-dir dist",
     "postversion": "git push && git push --tags"
   },
+  "prettier": {
+    "singleQuote": true
+  },
+  "eslintConfig": {
+    "extends": "@scipe"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scienceai/jsonld-rdfa-parser.git"
+    "url": "git+https://github.com/science-periodicals/jsonld-rdfa-parser.git"
   },
   "keywords": [
     "JSON-LD",
@@ -20,9 +26,9 @@
   "author": "Sebastien Ballesteros",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/scienceai/jsonld-rdfa-parser/issues"
+    "url": "https://github.com/science-periodicals/jsonld-rdfa-parser/issues"
   },
-  "homepage": "https://github.com/scienceai/jsonld-rdfa-parser#readme",
+  "homepage": "https://github.com/science-periodicals/jsonld-rdfa-parser#readme",
   "dependencies": {
     "graph-rdfa-processor": "^1.3.0",
     "is-url": "^1.2.2",
@@ -30,13 +36,14 @@
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
+    "@scipe/eslint-config": "^1.0.0",
     "babel-cli": "^6.23.0",
     "babel-plugin-add-module-exports": "0.2.1",
     "babel-preset-es2015": "^6.22.0",
     "babel-register": "^6.23.0",
-    "eslint-config-scienceai": "^4.4.0",
     "jsonld": "0.4.11",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "prettier": "^1.18.2"
   },
   "browser": {
     "xmldom": "./dist/browser/xmldom.js",
