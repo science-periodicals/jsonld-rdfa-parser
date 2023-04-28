@@ -2,57 +2,52 @@ import getRDFaGraph from 'graph-rdfa-processor';
 import { JSDOM } from 'jsdom'; // see ./browser/jsdom.js for browser version
 import { XMLSerializer } from 'xmldom'; // see ./browser/xmldom.js for browser version
 import isUrl from 'is-url';
+import dataFactory from '@rdfjs/data-model';
+import datasetFactory from '@rdfjs/dataset';
 
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const RDF_XML_LITERAL = RDF + 'XMLLiteral';
 const RDF_HTML_LITERAL = RDF + 'HTML';
 const RDF_OBJECT = RDF + 'object';
 const RDF_PLAIN_LITERAL = RDF + 'PlainLiteral';
-const RDF_LANGSTRING = RDF + 'langString';
 const XSD_STRING = 'http://www.w3.org/2001/XMLSchema#string';
 
 /**
  * @param data - a filePath, HTML string or URL
  */
 
-export default function jsonldRdfaParser(data, callback) {
+export default async function jsonldRdfaParser(data) {
   function process(node) {
     let opts;
     if (!node.baseURI || node.baseURI === 'about:blank') {
       opts = { baseURI: 'http://localhost/' };
     }
 
-    let dataset, processingError;
+    let dataset;
     try {
       let graph = getRDFaGraph(node, opts);
       dataset = processGraph(graph);
     } catch (e) {
-      processingError = e;
+      throw e;
     }
-    callback(processingError, dataset);
+    return dataset;
   }
 
   if (typeof data === 'object' && 'nodeType' in data) {
-    process(data);
+    return process(data);
   } else if (typeof data === 'string') {
     if (isUrl(data)) {
-      JSDOM.fromURL(data)
-        .then(dom => {
-          process(dom.window.document);
-        })
-        .catch(callback);
+      let dom = await JSDOM.fromURL(data);
+      return process(dom.window.document);
     } else if (/<[a-z][\s\S]*>/i.test(data)) {
-      process(new JSDOM(data).window.document);
+      return process(new JSDOM(data).window.document);
     } else {
-      JSDOM.fromFile(data)
-        .then(dom => {
-          process(dom.window.document);
-        })
-        .catch(callback);
+      let dom = await JSDOM.fromFile(data);
+      return process(dom.window.document);
     }
   } else {
-    return callback(
-      new Error('data must be a file path, HTML string, URL or a DOM element')
+    throw new Error(
+      'data must be a file path, HTML string, URL or a DOM element'
     );
   }
 }
@@ -62,9 +57,7 @@ export default function jsonldRdfaParser(data, callback) {
  * the latest green-turtle API, and for support for HTML
  */
 function processGraph(data) {
-  let dataset = {
-    '@default': []
-  };
+  let quads = [];
 
   let subjects = data.subjects,
     htmlMapper = n => {
@@ -85,15 +78,19 @@ function processGraph(data) {
         let triple = {};
 
         // add subject & predicate
-        triple.subject = {
-          type: subject.indexOf('_:') === 0 ? 'blank node' : 'IRI',
-          value: subject
-        };
-        triple.predicate = {
-          type: predicate.indexOf('_:') === 0 ? 'blank node' : 'IRI',
-          value: predicate
-        };
-        triple.object = {};
+        if (subject.indexOf('_:')) {
+          triple.subject = dataFactory.blankNode(subject);
+        } else {
+          triple.subject = dataFactory.namedNode(subject);
+        }
+
+        if (predicate.indexOf('_:')) {
+          triple.predicate = dataFactory.blankNode(predicate);
+        } else {
+          triple.predicate = dataFactory.namedNode(predicate);
+        }
+
+        triple.object = null;
 
         // serialize XML literal
         let value = object.value;
@@ -108,41 +105,59 @@ function processGraph(data) {
           value = Array.from(object.value)
             .map(n => serializer.serializeToString(n))
             .join('');
-          triple.object.datatype = RDF_XML_LITERAL;
+          triple.object = dataFactory.literal(
+            value,
+            dataFactory.namedNode(RDF_XML_LITERAL)
+          );
         }
         // serialise HTML literal
         else if (object.type === RDF_HTML_LITERAL) {
           value = Array.from(object.value)
             .map(htmlMapper)
             .join('');
-          triple.object.datatype = RDF_HTML_LITERAL;
+          triple.object = dataFactory.literal(
+            value,
+            dataFactory.namedNode(RDF_HTML_LITERAL)
+          );
         }
         // object is an IRI
         else if (object.type === RDF_OBJECT) {
-          if (object.value.indexOf('_:') === 0)
-            triple.object.type = 'blank node';
-          else triple.object.type = 'IRI';
+          if (object.value.indexOf('_:') === 0) {
+            triple.object = dataFactory.blankNode(value);
+          } else {
+            triple.object = dataFactory.namedNode(value);
+          }
         } else {
           // object is a literal
-          triple.object.type = 'literal';
           if (object.type === RDF_PLAIN_LITERAL) {
             if (object.language) {
-              triple.object.datatype = RDF_LANGSTRING;
-              triple.object.language = object.language;
+              triple.object = dataFactory.literal(value, object.language);
             } else {
-              triple.object.datatype = XSD_STRING;
+              triple.object = dataFactory.literal(
+                value,
+                dataFactory.namedNode(XSD_STRING)
+              );
             }
           } else {
-            triple.object.datatype = object.type;
+            triple.object = dataFactory.literal(
+              value,
+              dataFactory.namedNode(object.type)
+            );
           }
         }
-        triple.object.value = value;
 
         // add triple to dataset in default graph
-        dataset['@default'].push(triple);
+        quads.push(
+          dataFactory.quad(
+            triple.subject,
+            triple.predicate,
+            triple.object,
+            dataFactory.defaultGraph()
+          )
+        );
       }
     });
   });
 
-  return dataset;
+  return datasetFactory.dataset(quads);
 }
